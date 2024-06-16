@@ -1,0 +1,3 @@
+{
+    "fillna_method": "ffill"
+}
