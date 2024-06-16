@@ -3,6 +3,12 @@ import yfinance as yf
 from helper.config import Config
 
 
+class AssetType:
+    STOCK = 'stock'
+    BOND = 'bond'
+    CASH = 'cash'
+
+
 class Asset:
     def __init__(self, ticker, target_currency='JPY'):
         self.ticker = ticker
@@ -11,8 +17,9 @@ class Asset:
         self.exchange_rate = None
         self.target_currency = target_currency
         self.fillna_method = Config().config['fillna_method']
+        self.is_converted = False
 
-    def fetch_data(self, start_date, end_date):
+    def fetch_data(self, start_date: str, end_date: str):
         try:
             ticker_obj = yf.Ticker(self.ticker)
             self.data = ticker_obj.history(start=start_date, end=end_date)
@@ -31,8 +38,11 @@ class Asset:
             self.info = {}
 
     def convert_to_target_currency(self):
+        if self.is_converted:
+            return
         if self.info['currency'] != self.target_currency:
             self.data = self.data.apply(self._convert_row_to_target_currency, axis=1)
+            self.is_converted = True
 
     def _convert_row_to_target_currency(self, row):
         date = row.name.date()

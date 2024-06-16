@@ -1,4 +1,7 @@
 import unittest
+
+import yfinance as yf
+
 from data_fetcher.asset import Asset
 
 
@@ -32,7 +35,8 @@ class TestAsset(unittest.TestCase):
         asset = Asset('AAPL')
         asset.fetch_data('2022-01-01', '2022-12-31')
         if asset.info['currency'] != asset.target_currency:
-            data_before_conversion = asset.data.copy()
+            ticker_obj = yf.Ticker(asset.ticker)
+            data_before_conversion = ticker_obj.history(start='2022-01-01', end='2022-12-31')
             asset.convert_to_target_currency()
             self.assertNotEqual(data_before_conversion['Close'].iloc[0], asset.data['Close'].iloc[0])
             self.assertNotEqual(data_before_conversion['Open'].iloc[0], asset.data['Open'].iloc[0])

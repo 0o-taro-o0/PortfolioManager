@@ -1,0 +1,16 @@
+{
+  "stocks": [
+    {
+      "ticker": "^GSPC",
+      "ratio": 0.5
+
+    }
+  ],
+  "bonds": [
+    {
+      "ticker": "2012.T",
+      "ratio": 0.5
+    }
+  ],
+    "cash_ratio": 0.0
+}
