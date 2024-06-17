@@ -1,14 +1,55 @@
+"""
+投資を表すクラスと取引を表すクラスを定義するモジュール。
+"""
+
 from enum import Enum
 import pandas as pd
 from pandas import Timestamp
 
 
 class Trade:
+    """
+    取引を表すクラス。
+
+    Attributes
+    ----------
+    date : Timestamp
+        取引の日付。
+    trade_type : TradeType
+        取引の種類（購入または売却）。
+    amount : float
+        取引の金額。
+    tax_rate : float
+        取引にかかる税率。
+    average_share_price : float
+        取引の平均株価。
+
+    Methods
+    -------
+    None
+    """
     class Type(Enum):
+        """
+        取引の種類を表すEnumクラス。
+        """
         BUY = 'buy'
         SELL = 'sell'
 
     def __init__(self, date, trade_type, amount, tax_rate=0):
+        """
+        Tradeクラスの初期化メソッド。
+
+        Parameters
+        ----------
+        date : str
+            取引の日付。
+        trade_type : TradeType
+            取引の種類（購入または売却）。
+        amount : float
+            取引の金額。
+        tax_rate : float
+            取引にかかる税率。
+        """
         self.date = Timestamp(date)
         if self.date.tzinfo is None:
             self.date = self.date.tz_localize('America/New_York')
@@ -21,15 +62,48 @@ class Trade:
 
 
 class Investment:
+    """
+    投資を表すクラス。
+
+    Attributes
+    ----------
+    asset : Asset
+        投資対象のアセット。
+    trades : list
+        取引のリスト。
+
+    Methods
+    -------
+    get_state_at(date: str)
+        指定した日付での投資の状態を取得するメソッド。
+    record_trade(date: str, trade_type: TradeType, amount: float)
+        取引を記録するメソッド。
+    """
     def __init__(self, asset):
+        """
+        Investmentクラスの初期化メソッド。
+
+        Parameters
+        ----------
+        asset : Asset
+            投資対象のアセット。
+        """
         self.asset = asset
         self.trades = []
 
     def get_state_at(self, date: str):
         """
-        任意の日時での平均取得価格を取得する。
-        :param date:
-        :return:
+        指定した日付での投資の状態を取得するメソッド。
+
+        Parameters
+        ----------
+        date : str
+            状態を取得する日付。
+
+        Returns
+        -------
+        dict
+            指定した日付での投資の状態。
         """
         date = Timestamp(date).tz_localize('America/New_York')
         if date not in self.asset.data.index:
@@ -58,6 +132,18 @@ class Investment:
         return average_share_price, shares, principal, valuation
 
     def record_trade(self, date: str, trade_type: Trade.Type, amount: int):
+        """
+        取引を記録するメソッド。
+
+        Parameters
+        ----------
+        date : str
+            取引の日付。
+        trade_type : TradeType
+            取引の種類（購入または売却）。
+        amount : float
+            取引の金額。
+        """
         if date not in self.asset.data.index:
             next_date = self.asset.data.index[self.asset.data.index > date].min()
             if pd.isna(next_date):
