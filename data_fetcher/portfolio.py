@@ -130,6 +130,7 @@ class Portfolio:
             investment.asset.fetch_data(self.date_range[0].strftime('%Y-%m-%d'),
                                         self.date_range[1].strftime('%Y-%m-%d'))
             investment.asset.convert_to_target_currency()
+
         # すべてのデータで開始日と終了日が共通か確認する。
         # 一致しない場合は開始日は後ろにずらし、終了日は前にずらして再取得する。
         # これを一致するまで続ける。３０回以上繰り返す場合はエラーを出力する。
@@ -287,7 +288,7 @@ class Portfolio:
         float
             指定した日付でのポートフォリオの利益率。
         """
-        return self.get_profit(date) / self.principal - 1
+        return self.get_profit(date) / self.principal
 
     def reset(self):
         """

@@ -4,6 +4,7 @@
 
 from enum import Enum
 
+import numpy as np
 import pandas as pd
 import yfinance as yf
 
@@ -134,6 +135,8 @@ class Asset:
                                                           self.data.index.min(),
                                                           self.data.index.max())
             self.data = self.data.apply(self.__convert_row_to_target_currency, axis=1)
+            # Drop rows with NaN values
+            self.data.dropna(inplace=True)
             self.is_converted = True
 
     def __convert_row_to_target_currency(self, row):
@@ -145,7 +148,8 @@ class Asset:
         if date in self.exchange_rate.index:
             rate = self.exchange_rate.loc[date]
             return row * rate
-        return row
+        # Return NaN if the exchange rate is unknown
+        return pd.Series([np.nan] * len(row), index=row.index)
 
     def fetch_exchange_rate(self, base_currency, target_currency, start_date, end_date):
         """
@@ -161,6 +165,11 @@ class Asset:
             為替レートを取得する開始日。
         end_date : str
             為替レートを取得する終了日。
+
+        Returns
+        -------
+        pd.Series
+            指定された日付範囲の為替レート。
         """
         try:
             ticker_obj = yf.Ticker(f'{base_currency}{target_currency}=X')
@@ -180,4 +189,4 @@ class Asset:
             return data['Close']
         except Exception as e:
             print(f"Error occurred while fetching exchange rate: {e}")
-            return None
+        return None
