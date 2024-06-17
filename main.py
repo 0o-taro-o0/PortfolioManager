@@ -1,9 +1,6 @@
-from data_fetcher.asset import Asset
-
-from pandas import Timestamp
+import yfinance as yf
 
 if __name__ == '__main__':
-    asset = Asset('AAPL')
-    asset.fetch_data('2021-12-01', '2022-12-31')
-    time: Timestamp = asset.data.index[0]
-    print(time.tz)
+    asset = yf.Ticker('03311187')
+    data = asset.info.items()
+    print(115.141998*175.597058)

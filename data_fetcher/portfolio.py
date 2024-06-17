@@ -3,49 +3,81 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from data_fetcher.investment import Investment, Trade
+from data_fetcher.asset import Asset
+
+example_plan = {
+            'AAPL': {
+                'ratio': 0.7,
+                'type': 'STOCK'
+            },
+            'GOOGL': {
+                'ratio': 0.3,
+                'type': 'STOCK'
+            }
+        }
 
 class Portfolio:
-    """
-    A class to represent a portfolio.
-    アセットクラスとポートフォリオ内でのアセットの割合を受け取り、ポートフォリオを作成する。
+    def __init__(self, plan: dict):
+        if not self.check_total_ratio(plan):
+            raise ValueError('Total ratio of investments must be 1')
+        self.plan = plan
+        self.investments = []
+        self.date_range = None
+        # self.investments = investments
+        # self.portfolio = pd.DataFrame()
+        # self.portfolio['cash'] = 0
+        # for investment in investments.values():
+        #     self.portfolio[investment.asset.asset_id] = 0
 
-    """
-    def __init__(self, assets, weights, target_currency='JPY'):
-        self.assets = assets
-        self.weights = weights
-        self.target_currency = target_currency
-        self.data = None
-        self.info = {}
-        self.exchange_rate = None
+    @staticmethod
+    def check_total_ratio(plan: dict):
+        ratios = [asset['ratio'] for asset in plan.keys()]
+        return sum(ratios) == 1
 
-    def fetch_data(self, start_date, end_date):
-        for asset in self.assets:
-            asset.fetch_data(start_date, end_date)
-        self.data = pd.concat([asset.data for asset in self.assets], axis=1)
-        self.data = self.data.dropna()
+    def init_investments(self):
+        for ticker in self.plan.keys():
+            asset = Asset(Asset.Type[self.plan[ticker]['type']], ticker)
+            investment = Investment(asset)
+            self.investments.append(investment)
 
-    def convert_to_target_currency(self):
-        for asset in self.assets:
-            asset.convert_to_target_currency()
-        self.exchange_rate = self.assets[0].exchange_rate
+    def get_data(self):
+        for investment in self.investments:
+            if self.date_range is None:
+                investment.asset.fetch_data(entirely=True)
+                self.date_range = (investment.assetdata.index.min(), investment.asset.data.index.max())
+            else:
+                investment.asset.fetch_data(self.date_range[0].strftime('%Y-%m-%d'), self.date_range[1].strftime('%Y-%m-%d'))
+                date_range = (investment.asset.data.index.min(), investment.asset.data.index.max())
+                self.date_range = (max(self.date_range[0], date_range[0]), min(self.date_range[1], date_range[1]))
+        for investment in self.investments:
+            investment.asset.data = investment.asset.data.loc[self.date_range[0]:self.date_range[1]].copy()
+            # If the first date is not in the index, add a new record with the data of the oldest date
+            if self.date_range[0] not in investment.asset.data.index:
+                oldest_date = investment.asset.data.index.min()
+                oldest_data = investment.asset.data.loc[oldest_date]
+                investment.asset.data.loc[self.date_range[0]] = oldest_data
 
-    def calculate_portfolio_return(self):
-        self.data['Portfolio'] = 0
-        for i, asset in enumerate(self.assets):
-            self.data['Portfolio'] += self.data[asset.ticker] * self.weights[i]
-        self.data['Portfolio'] = self.data['Portfolio'] / self.data['Portfolio'].iloc[0]
-        self.data['Portfolio'] = self.data['Portfolio'] * self.exchange_rate
+            # If the last date is not in the index, add a new record with the data of the newest date
+            if self.date_range[1] not in investment.asset.data.index:
+                newest_date = investment.asset.data.index.max()
+                newest_data = investment.asset.data.loc[newest_date]
+                investment.asset.data.loc[self.date_range[1]] = newest_data
+                investment.asset.convert_to_target_currency()
 
-    def calculate_portfolio_statistics(self):
-        self.info['Portfolio'] = {}
-        self.info['Portfolio']['Return'] = (self.data['Portfolio'].iloc[-1] / self.data['Portfolio'].iloc[0]) - 1
-        self.info['Portfolio']['StdDev'] = self.data['Portfolio'].pct_change().std()
-        self.info['Portfolio']['SharpeRatio'] = self.info['Portfolio']['Return'] / self.info['Portfolio']['StdDev']
 
-    def plot_portfolio(self):
-        plt.figure(figsize=(12, 6))
-        for asset in self.assets:
-            plt.plot(self.data[asset.ticker] / self.data[asset.ticker].iloc[0], label=asset.ticker)
-        plt.plot(self.data['Portfolio'] / self.data['Portfolio'].iloc[0], label='Portfolio', linewidth=3)
-        plt.legend()
-        plt.show()
+    # def rebalance(self, date):
+    #     # Implement rebalancing logic here
+    #     pass
+    #
+    # def invest(self, date, investment_id, amount):
+    #     # Add the investment amount to the specified investment
+    #     self.investments[investment_id].record_trade(date, TradeType.BUY, amount)
+    #
+    # def simulate(self, start_date, end_date):
+    #     # Implement simulation logic here
+    #     pass
+    #
+    # def plot(self):
+    #     self.portfolio.plot()
+    #     plt.show()

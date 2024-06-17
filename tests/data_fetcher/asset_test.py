@@ -9,7 +9,7 @@ class TestAsset(unittest.TestCase):
 
     def test_initialization(self):
         """Tests whether an Asset object can be correctly initialized."""
-        asset = Asset('AAPL')
+        asset = Asset(Asset.Type.STOCK, 'AAPL')
         self.assertEqual(asset.ticker, 'AAPL')
         self.assertIsNone(asset.data)
         self.assertEqual(asset.info, {})
@@ -17,7 +17,7 @@ class TestAsset(unittest.TestCase):
 
     def test_fetch_data(self):
         """Tests whether data can be fetched correctly for an Asset object."""
-        asset = Asset('AAPL')
+        asset = Asset(Asset.Type.STOCK, 'AAPL')
         asset.fetch_data('2022-01-01', '2022-12-31')
         self.assertIsNotNone(asset.data)
         self.assertIsNotNone(asset.info['currency'])
@@ -25,14 +25,14 @@ class TestAsset(unittest.TestCase):
     def test_fetch_data_with_invalid_ticker(self):
         """Tests whether an exception is raised when an invalid ticker is provided to fetch data for an Asset object."""
         try:
-            asset = Asset('INVALID_TICKER')
+            asset = Asset(Asset.Type.BOND, 'INVALID_TICKER')
             asset.fetch_data('2022-01-01', '2022-12-31')
         except Exception as e:
             self.assertIsInstance(e, Exception)
 
     def test_convert_to_target_currency(self):
         """Tests whether data can be correctly converted to the target currency for an Asset object."""
-        asset = Asset('AAPL')
+        asset = Asset(Asset.Type.STOCK, 'AAPL')
         asset.fetch_data('2022-01-01', '2022-12-31')
         if asset.info['currency'] != asset.target_currency:
             ticker_obj = yf.Ticker(asset.ticker)
@@ -46,7 +46,7 @@ class TestAsset(unittest.TestCase):
     def test_convert_to_target_currency_with_invalid_exchange_rate(self):
         """Tests whether an exception is raised when an invalid exchange rate is provided to convert data to the
         target currency for an Asset object."""
-        asset = Asset('AAPL')
+        asset = Asset(Asset.Type.STOCK, 'AAPL')
         asset.fetch_data('2022-01-01', '2022-12-31')
         asset.exchange_rate = None
         try:

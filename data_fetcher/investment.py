@@ -3,12 +3,11 @@ import pandas as pd
 from pandas import Timestamp
 
 
-class TradeType(Enum):
-    BUY = 'buy'
-    SELL = 'sell'
-
-
 class Trade:
+    class Type(Enum):
+        BUY = 'buy'
+        SELL = 'sell'
+
     def __init__(self, date, trade_type, amount, tax_rate=0):
         self.date = Timestamp(date)
         if self.date.tzinfo is None:
@@ -43,12 +42,12 @@ class Investment:
         # tradesを過去の取引から順に見ていく
         for trade in sorted(self.trades, key=lambda x: x.date):
             if trade.date <= date:
-                if trade.trade_type == TradeType.BUY:
+                if trade.trade_type == Trade.Type.BUY:
                     # 過去の取引での購入価格の総額
                     temp_principal = shares * average_share_price
                     shares += trade.quantity
                     average_share_price = (temp_principal + trade.amount) / shares
-                elif trade.trade_type == TradeType.SELL:
+                elif trade.trade_type == Trade.Type.SELL:
                     # sharesをtrade.quantity分減らす。
                     shares -= trade.quantity
 
