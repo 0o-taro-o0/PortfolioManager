@@ -42,8 +42,9 @@ class Asset:
         if self.is_converted:
             return
         if self.info['currency'] != self.target_currency:
-            self.exchange_rate = self.fetch_exchange_rate(self.info['currency'], self.target_currency, self.data.index.min(),
-                                     self.data.index.max())
+            self.exchange_rate = self.fetch_exchange_rate(self.info['currency'], self.target_currency,
+                                                          self.data.index.min(),
+                                                          self.data.index.max())
             self.data = self.data.apply(self._convert_row_to_target_currency, axis=1)
             self.is_converted = True
 

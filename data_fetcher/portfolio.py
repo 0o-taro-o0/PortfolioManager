@@ -1,21 +1,19 @@
 # assetクラスを使い、ポートフォリオを作成する。Portfolioクラスを使い、ポートフォリオの運用シミュレーションを行う。
 
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from data_fetcher.investment import Investment, Trade
+from data_fetcher.investment import Investment
 from data_fetcher.asset import Asset
 
 example_plan = {
-            'AAPL': {
-                'ratio': 0.7,
-                'type': 'STOCK'
-            },
-            'GOOGL': {
-                'ratio': 0.3,
-                'type': 'STOCK'
-            }
-        }
+    'AAPL': {
+        'ratio': 0.7,
+        'type': 'STOCK'
+    },
+    'GOOGL': {
+        'ratio': 0.3,
+        'type': 'STOCK'
+    }
+}
+
 
 class Portfolio:
     def __init__(self, plan: dict):
@@ -32,7 +30,7 @@ class Portfolio:
 
     @staticmethod
     def check_total_ratio(plan: dict):
-        ratios = [asset['ratio'] for asset in plan.keys()]
+        ratios = [plan[asset]['ratio'] for asset in plan.keys()]
         return sum(ratios) == 1
 
     def init_investments(self):
@@ -45,9 +43,10 @@ class Portfolio:
         for investment in self.investments:
             if self.date_range is None:
                 investment.asset.fetch_data(entirely=True)
-                self.date_range = (investment.assetdata.index.min(), investment.asset.data.index.max())
+                self.date_range = (investment.asset.data.index.min(), investment.asset.data.index.max())
             else:
-                investment.asset.fetch_data(self.date_range[0].strftime('%Y-%m-%d'), self.date_range[1].strftime('%Y-%m-%d'))
+                investment.asset.fetch_data(self.date_range[0].strftime('%Y-%m-%d'),
+                                            self.date_range[1].strftime('%Y-%m-%d'))
                 date_range = (investment.asset.data.index.min(), investment.asset.data.index.max())
                 self.date_range = (max(self.date_range[0], date_range[0]), min(self.date_range[1], date_range[1]))
         for investment in self.investments:
@@ -63,8 +62,7 @@ class Portfolio:
                 newest_date = investment.asset.data.index.max()
                 newest_data = investment.asset.data.loc[newest_date]
                 investment.asset.data.loc[self.date_range[1]] = newest_data
-                investment.asset.convert_to_target_currency()
-
+            investment.asset.convert_to_target_currency()
 
     # def rebalance(self, date):
     #     # Implement rebalancing logic here
