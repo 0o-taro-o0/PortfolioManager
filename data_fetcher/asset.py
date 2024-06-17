@@ -23,6 +23,18 @@ class Asset:
         self.target_currency = target_currency
         self.fillna_method = Config().config['fillna_method']
         self.is_converted = False
+        self.date_range = self.__get_date_range()
+
+    def __get_date_range(self):
+        try:
+            ticker_obj = yf.Ticker(self.ticker)
+            data = ticker_obj.history(period='max')
+            date_range = (data.index.min(), data.index.max())
+            del data
+        except Exception as e:
+            print(f"Error occurred while fetching data: {e}")
+            date_range = None
+        return date_range
 
     def fetch_data(self, start_date: str = None, end_date: str = None, entirely: bool = False):
         try:
@@ -31,6 +43,7 @@ class Asset:
                 self.data = ticker_obj.history(period='max')
             else:
                 self.data = ticker_obj.history(start=start_date, end=end_date)
+            self.is_converted = False
             self.info['currency'] = ticker_obj.info['currency']
 
         except Exception as e:

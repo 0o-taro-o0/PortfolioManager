@@ -57,7 +57,7 @@ class Investment:
         valuation = self.asset.data.loc[date, 'Close'] * shares
         return average_share_price, shares, principal, valuation
 
-    def record_trade(self, date, trade_type, amount):
+    def record_trade(self, date: str, trade_type: Trade.Type, amount: int):
         if date not in self.asset.data.index:
             next_date = self.asset.data.index[self.asset.data.index > date].min()
             if pd.isna(next_date):
